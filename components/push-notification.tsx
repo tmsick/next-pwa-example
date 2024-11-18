@@ -4,14 +4,10 @@ import { useEffect, useState } from "react"
 import { getToken } from "@firebase/messaging"
 import { messaging } from "@/firebase"
 
-export const PushNotification = () => {
+const PushNotification = () => {
   const [token, setToken] = useState("")
 
   const handleClick = () => {
-    if (typeof navigator === "undefined") {
-      return
-    }
-
     navigator.clipboard.writeText(token)
   }
 
@@ -48,3 +44,5 @@ export const PushNotification = () => {
     </div>
   )
 }
+
+export default PushNotification
