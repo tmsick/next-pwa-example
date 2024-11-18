@@ -8,6 +8,10 @@ export const PushNotification = () => {
   const [token, setToken] = useState("")
 
   const handleClick = () => {
+    if (typeof navigator === "undefined") {
+      return
+    }
+
     navigator.clipboard.writeText(token)
   }
 
