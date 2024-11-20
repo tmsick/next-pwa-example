@@ -1,54 +1,39 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import useFcm from "@/hooks/use-fcm"
+import { useState } from "react"
 
 const PushNotification = () => {
+  const [permissionState, getFcmToken] = useFcm()
+
   const [token, setToken] = useState("")
 
   const handleClick = () => {
     navigator.clipboard.writeText(token)
   }
 
-  useEffect(() => {
-    if (!("serviceWorker" in navigator)) {
-      return
-    }
-
-    if (!("PushManager" in window)) {
-      return
-    }
-
-    ;(async () => {
-      let registration = await navigator.serviceWorker.getRegistration()
-      if (!registration) {
-        registration = await navigator.serviceWorker.register("/service-worker.js")
-      }
-
-      const { getFcmToken } = await import("@/firebase")
-      const token = await getFcmToken({
-        serviceWorkerRegistration: registration,
-        vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY!,
-      })
-
-      if (!token) {
-        return
-      }
-
-      setToken(token)
-    })().catch(error => {
-      alert(`Failed to get fcm token: ${error}`)
-    })
-  }, [])
+  const handleClickPermission = async () => {
+    const token = await getFcmToken()
+    setToken(token)
+  }
 
   return (
     <div>
-      <label>
-        Token:
-        <input type="text" value={token} readOnly />
-      </label>
-      <button type="button" onClick={handleClick}>
-        Copy
-      </button>
+      <div>
+        <button onClick={handleClickPermission}>Get notification permission</button>
+      </div>
+      <div>
+        Permission state: <code>{permissionState}</code>
+      </div>
+      <div>
+        <label>
+          Token:
+          <input type="text" value={token} readOnly />
+        </label>
+        <button type="button" onClick={handleClick}>
+          Copy
+        </button>
+      </div>
     </div>
   )
 }

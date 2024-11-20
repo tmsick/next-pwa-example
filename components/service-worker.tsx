@@ -13,10 +13,10 @@ const ServiceWorker: React.FC = () => {
     navigator.serviceWorker
       .register(path)
       .then(registration => {
-        alert(`Service worker registered with scope: ${registration.scope}`)
+        console.log(`Service worker registered with scope: ${registration.scope}`)
       })
       .catch(error => {
-        alert(`Failed in registering service worker: ${error}`)
+        console.warn(`Failed in registering service worker: ${error}`)
       })
   }, [])
 
