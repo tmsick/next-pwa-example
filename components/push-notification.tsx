@@ -1,8 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getToken } from "@firebase/messaging"
-import { messaging } from "@/firebase"
 
 const PushNotification = () => {
   const [token, setToken] = useState("")
@@ -20,16 +18,26 @@ const PushNotification = () => {
       return
     }
 
-    navigator.serviceWorker
-      .register("/service-worker.js")
-      .then(registration =>
-        getToken(messaging, {
-          serviceWorkerRegistration: registration,
-          vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY!,
-        }),
-      )
-      .then(token => setToken(token))
-      .catch(error => alert(error))
+    ;(async () => {
+      let registration = await navigator.serviceWorker.getRegistration()
+      if (!registration) {
+        registration = await navigator.serviceWorker.register("/service-worker.js")
+      }
+
+      const { getFcmToken } = await import("@/firebase")
+      const token = await getFcmToken({
+        serviceWorkerRegistration: registration,
+        vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY!,
+      })
+
+      if (!token) {
+        return
+      }
+
+      setToken(token)
+    })().catch(error => {
+      alert(`Failed to get fcm token: ${error}`)
+    })
   }, [])
 
   return (
