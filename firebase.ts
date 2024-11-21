@@ -1,4 +1,4 @@
-import { type GetTokenOptions, getMessaging, getToken } from "@firebase/messaging"
+import { getMessaging } from "@firebase/messaging"
 import { initializeApp } from "firebase/app"
 
 const app = initializeApp({
@@ -11,8 +11,4 @@ const app = initializeApp({
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
 })
 
-const messaging = getMessaging(app)
-
-export const getFcmToken = async (options?: GetTokenOptions) => {
-  return getToken(messaging, options)
-}
+export const messaging = getMessaging(app)

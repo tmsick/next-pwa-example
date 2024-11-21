@@ -1,55 +1,41 @@
-import { useState } from "react"
+"use client"
 
-type GetFcmTokenFunc = () => Promise<string>
+import { getToken as fcmGetToken, isSupported as fcmIsSupported } from "@firebase/messaging"
+import { useEffect, useState } from "react"
+import { useServiceWorker } from "@/components/service-worker-provider"
 
-export default function useFcm(): [PermissionState, GetFcmTokenFunc] {
+export const useFcmToken = () => {
+  const { loading, sw } = useServiceWorker()
+
+  const [isSupported, setIsSupported] = useState(false)
   const [permissionState, setPermissionState] = useState<PermissionState>("prompt")
 
-  const getFcmToken: GetFcmTokenFunc = async () => {
-    if (!("serviceWorker" in navigator)) {
-      setPermissionState("denied")
-      return ""
+  const [getToken, setGetToken] = useState<(() => Promise<string>) | null>(null)
+
+  useEffect(() => {
+    fcmIsSupported().then(setIsSupported)
+  }, [])
+
+  useEffect(() => {
+    if (loading || !sw || !isSupported || permissionState === "denied") {
+      return
     }
 
-    if (!("PushManager" in window)) {
-      setPermissionState("denied")
-      return ""
-    }
+    ;(async () => {
+      const { messaging } = await import("@/firebase")
 
-    const { getFcmToken } = await import("@/firebase")
+      const getToken = () =>
+        fcmGetToken(messaging, {
+          serviceWorkerRegistration: sw,
+          vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY!,
+        }).finally(async () => {
+          setPermissionState(await sw.pushManager.permissionState({ userVisibleOnly: true }))
+        })
 
-    let registration: ServiceWorkerRegistration
-    try {
-      registration =
-        (await navigator.serviceWorker.getRegistration()) ||
-        (await navigator.serviceWorker.register("/service-worker.js"))
-    } catch (error) {
-      console.warn(`Failed to register service worker: ${error}`)
-      setPermissionState("denied")
-      return ""
-    }
+      setGetToken(() => getToken)
+      setPermissionState(await sw.pushManager.permissionState({ userVisibleOnly: true }))
+    })()
+  }, [isSupported, loading, permissionState, sw])
 
-    let token: string
-    try {
-      token = await getFcmToken({
-        serviceWorkerRegistration: registration,
-        vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY!,
-      })
-    } catch (error) {
-      console.warn(`Failed to get fcm token: ${error}`)
-      setPermissionState("denied")
-      return ""
-    }
-
-    try {
-      setPermissionState(await registration.pushManager.permissionState({ userVisibleOnly: true }))
-    } catch (error) {
-      console.warn(`Failed to get permission state: ${error}`)
-      setPermissionState("denied")
-    }
-
-    return token
-  }
-
-  return [permissionState, getFcmToken]
+  return { getToken, isSupported, permissionState }
 }
