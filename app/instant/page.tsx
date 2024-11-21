@@ -31,6 +31,10 @@ const Page = () => {
     })()
   }, [getToken, isSupported, permissionState, token])
 
+  if (!isSupported) {
+    return <p>Not supported 😢</p>
+  }
+
   return (
     <div>
       {loading && <p>Loading...</p>}
