@@ -4,7 +4,7 @@ import { getToken as fcmGetToken, isSupported as fcmIsSupported } from "@firebas
 import { useEffect, useState } from "react"
 import { useServiceWorker } from "@/components/service-worker-provider"
 
-export const useFcmToken = () => {
+export const useFcm = () => {
   const { loading, sw } = useServiceWorker()
 
   const [isSupported, setIsSupported] = useState(false)

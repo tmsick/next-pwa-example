@@ -1,10 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useFcmToken } from "@/hooks/use-fcm"
+import { useFcm } from "@/hooks/use-fcm"
 
 const Page = () => {
-  const { getToken, isSupported, permissionState } = useFcmToken()
+  const { getToken, isSupported, permissionState } = useFcm()
 
   const [token, setToken] = useState("")
   const [loading, setLoading] = useState(false)
